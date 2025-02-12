@@ -6,12 +6,24 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 from starlette.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from src.services.redis_cache import redis_cache
 
 
 app = FastAPI()
 origins = [
     "http://localhost:3000",
 ]
+
+
+@app.on_event("startup")
+async def startup():
+    await redis_cache.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    await redis_cache.close()
+
 
 app.add_middleware(
     CORSMiddleware,

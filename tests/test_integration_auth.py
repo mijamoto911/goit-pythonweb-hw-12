@@ -1,5 +1,4 @@
 from unittest.mock import Mock
-
 import pytest
 from sqlalchemy import select
 from src.conf import messages
@@ -15,7 +14,14 @@ user_data = {
 
 
 def test_signup(auth_client, monkeypatch):
-    """✅ Ensure a new user can sign up."""
+    """
+    Перевіряє можливість реєстрації нового користувача.
+
+    :param auth_client: Тестовий клієнт FastAPI.
+    :type auth_client: TestClient
+    :param monkeypatch: Інструмент для заміни функцій.
+    :type monkeypatch: pytest.MonkeyPatch
+    """
     mock_send_email = Mock()
     monkeypatch.setattr("src.api.auth.send_email", mock_send_email)
 
@@ -23,7 +29,7 @@ def test_signup(auth_client, monkeypatch):
     assert response.status_code in [
         201,
         409,
-    ], response.text  # ✅ Handle user already exists
+    ], response.text  # 409 якщо користувач існує
     data = response.json()
     assert data["username"] == user_data["username"]
     assert data["email"] == user_data["email"]
@@ -33,7 +39,14 @@ def test_signup(auth_client, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_repeat_signup(auth_client, monkeypatch):
-    """✅ Ensure duplicate signup fails."""
+    """
+    Перевіряє, що повторна реєстрація користувача не дозволена.
+
+    :param auth_client: Тестовий клієнт FastAPI.
+    :type auth_client: TestClient
+    :param monkeypatch: Інструмент для заміни функцій.
+    :type monkeypatch: pytest.MonkeyPatch
+    """
     mock_send_email = Mock()
     monkeypatch.setattr("src.api.auth.send_email", mock_send_email)
 
@@ -44,13 +57,15 @@ async def test_repeat_signup(auth_client, monkeypatch):
 
 
 def test_not_confirmed_login(auth_client):
+    """
+    Перевіряє, що вхід неможливий, якщо email користувача не підтверджений.
 
+    :param auth_client: Тестовий клієнт FastAPI.
+    :type auth_client: TestClient
+    """
     response = auth_client.post(
         "api/auth/login",
-        json={
-            "email": user_data.get("email"),
-            "password": user_data.get("password"),
-        },
+        json={"email": user_data.get("email"), "password": user_data.get("password")},
     )
     assert response.status_code == 401, response.text
     data = response.json()
@@ -59,6 +74,12 @@ def test_not_confirmed_login(auth_client):
 
 @pytest.mark.asyncio
 async def test_login(auth_client):
+    """
+    Перевіряє можливість входу користувача після підтвердження email.
+
+    :param auth_client: Тестовий клієнт FastAPI.
+    :type auth_client: TestClient
+    """
     async with TestingSessionLocal() as session:
         current_user = await session.execute(
             select(User).where(User.email == user_data.get("email"))
@@ -80,6 +101,12 @@ async def test_login(auth_client):
 
 
 def test_wrong_password_login(auth_client):
+    """
+    Перевіряє, що вхід неможливий з неправильним паролем.
+
+    :param auth_client: Тестовий клієнт FastAPI.
+    :type auth_client: TestClient
+    """
     response = auth_client.post(
         "api/auth/login",
         json={"email": user_data.get("email"), "password": "password is wrong"},
@@ -90,6 +117,12 @@ def test_wrong_password_login(auth_client):
 
 
 def test_wrong_username_login(auth_client):
+    """
+    Перевіряє, що вхід неможливий з неправильним email.
+
+    :param auth_client: Тестовий клієнт FastAPI.
+    :type auth_client: TestClient
+    """
     response = auth_client.post(
         "api/auth/login",
         json={"email": "wrong email", "password": user_data.get("password")},
@@ -100,6 +133,12 @@ def test_wrong_username_login(auth_client):
 
 
 def test_validation_error_login(auth_client):
+    """
+    Перевіряє валідацію запиту на вхід, коли відсутній email.
+
+    :param auth_client: Тестовий клієнт FastAPI.
+    :type auth_client: TestClient
+    """
     response = auth_client.post(
         "api/auth/login", json={"password": user_data.get("password")}
     )

@@ -1,15 +1,19 @@
 import asyncio
 import pytest
 import pytest_asyncio
+import sys
+import os
 from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from datetime import datetime
 
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/../"))
 from main import app
 from src.database.models import Base, User
 from src.database.db import get_db
 from src.services.auth import create_access_token, Hash
+
 
 SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
@@ -81,17 +85,38 @@ async def get_token():
 
 
 @pytest.fixture(scope="module")
-def auth_client(client):
-    response = client.post("api/auth/register", json=test_user)
-    assert response.status_code == 201, response.text
+def get_token(client):
     response = client.post(
-        "api/auth/login",
-        json={
-            "email": test_user.get("email"),
-            "password": test_user.get("password"),
-        },
+        "api/auth/register",
+        json={"email": "test@example.com", "password": "testpassword"},
+    )
+    assert response.status_code == 201, response.text
+
+    response = client.post(
+        "api/auth/login", json={"email": "test@example.com", "password": "testpassword"}
     )
     assert response.status_code == 200, response.text
-    token = response.json()["access_token"]
-    client.headers.update({"Authorization": f"Bearer {token}"})
-    return client
+    return response.json()["access_token"]
+
+
+@pytest.fixture(scope="session", autouse=True)
+async def setup_database():
+    """Ініціалізуємо тестову БД перед запуском тестів"""
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
+
+@pytest.fixture
+async def db_session():
+    """Надає сесію для тестів"""
+    async with AsyncSession(engine) as session:
+        yield session
+
+
+@pytest.fixture(scope="module")
+async def test_db():
+    async with async_sessionmaker(bind=engine)() as session:
+        yield session

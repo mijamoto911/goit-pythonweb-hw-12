@@ -15,7 +15,16 @@ test_contact = {
 
 @pytest.fixture(scope="module")
 def create_contact(client, get_token):
-    """Create a test contact and return its ID."""
+    """
+    Створює тестовий контакт та повертає його ID.
+
+    :param client: Тестовий клієнт FastAPI.
+    :type client: TestClient
+    :param get_token: Авторизаційний токен.
+    :type get_token: str
+    :return: ID створеного контакту.
+    :rtype: int
+    """
     response = client.post(
         "/api/contacts",
         json=test_contact,
@@ -26,20 +35,17 @@ def create_contact(client, get_token):
 
 
 def test_get_contact(client, get_token, create_contact):
+    """
+    Отримує контакт за його ID.
+
+    :param client: Тестовий клієнт FastAPI.
+    :type client: TestClient
+    :param get_token: Авторизаційний токен.
+    :type get_token: str
+    :param create_contact: ID створеного контакту.
+    :type create_contact: int
+    """
     contact_id = create_contact
-    response = client.get(
-        f"/api/contacts/{contact_id}", headers={"Authorization": f"Bearer {get_token}"}
-    )
-    assert response.status_code == 200, response.text
-    data = response.json()
-    assert data["first_name"] == test_contact["first_name"]
-    assert "id" in data
-    assert data["id"] == contact_id
-
-
-def test_get_contact(client, get_token, create_contact):
-    contact_id = create_contact
-
     response = client.get(
         f"/api/contacts/{contact_id}", headers={"Authorization": f"Bearer {get_token}"}
     )
@@ -51,6 +57,14 @@ def test_get_contact(client, get_token, create_contact):
 
 
 def test_get_contact_not_found(client, get_token):
+    """
+    Перевіряє, що запит на отримання неіснуючого контакту повертає 404.
+
+    :param client: Тестовий клієнт FastAPI.
+    :type client: TestClient
+    :param get_token: Авторизаційний токен.
+    :type get_token: str
+    """
     non_existent_id = 99999
     response = client.get(
         f"/api/contacts/{non_existent_id}",
@@ -62,6 +76,16 @@ def test_get_contact_not_found(client, get_token):
 
 
 def test_get_contacts(client, get_token, create_contact):
+    """
+    Отримує всі контакти користувача.
+
+    :param client: Тестовий клієнт FastAPI.
+    :type client: TestClient
+    :param get_token: Авторизаційний токен.
+    :type get_token: str
+    :param create_contact: ID створеного контакту.
+    :type create_contact: int
+    """
     response = client.get(
         "/api/contacts", headers={"Authorization": f"Bearer {get_token}"}
     )
@@ -73,6 +97,16 @@ def test_get_contacts(client, get_token, create_contact):
 
 
 def test_update_contact(client, get_token, create_contact):
+    """
+    Оновлює контакт за його ID.
+
+    :param client: Тестовий клієнт FastAPI.
+    :type client: TestClient
+    :param get_token: Авторизаційний токен.
+    :type get_token: str
+    :param create_contact: ID створеного контакту.
+    :type create_contact: int
+    """
     contact_id = create_contact
     updated_test_contact = test_contact.copy()
     updated_test_contact["first_name"] = "New_name"
@@ -90,6 +124,14 @@ def test_update_contact(client, get_token, create_contact):
 
 
 def test_update_contact_not_found(client, get_token):
+    """
+    Перевіряє, що оновлення неіснуючого контакту повертає 404.
+
+    :param client: Тестовий клієнт FastAPI.
+    :type client: TestClient
+    :param get_token: Авторизаційний токен.
+    :type get_token: str
+    """
     non_existent_id = 99999
     updated_test_contact = test_contact.copy()
     updated_test_contact["first_name"] = "New_name"
@@ -106,6 +148,16 @@ def test_update_contact_not_found(client, get_token):
 
 
 def test_delete_contact(client, get_token, create_contact):
+    """
+    Видаляє контакт за його ID.
+
+    :param client: Тестовий клієнт FastAPI.
+    :type client: TestClient
+    :param get_token: Авторизаційний токен.
+    :type get_token: str
+    :param create_contact: ID створеного контакту.
+    :type create_contact: int
+    """
     contact_id = create_contact
 
     response = client.delete(
@@ -120,7 +172,14 @@ def test_delete_contact(client, get_token, create_contact):
 
 
 def test_repeat_delete_contact(client, get_token):
-    """Try to delete a non-existent contact."""
+    """
+    Перевіряє, що повторне видалення неіснуючого контакту повертає 404.
+
+    :param client: Тестовий клієнт FastAPI.
+    :type client: TestClient
+    :param get_token: Авторизаційний токен.
+    :type get_token: str
+    """
     response = client.delete(
         "/api/contacts/99999", headers={"Authorization": f"Bearer {get_token}"}
     )
