@@ -1,0 +1,7 @@
+CONTACT_NOT_FOUND = "Contact not found"
+WELCOME_MESSAGE = "Welcome to FastAPI!"
+APP_IS_HEALTHY = "Application is healthy"
+USER_ALREADY_EXIST = "User already exists"
+USER_EMAIL_NOT_CONFIRMED = "Email is not confirmed"
+USER_NOT_AUTHENTICATED = "User is not authenticated"
+WRONG_PASSWORD = "Wrong password or email"
