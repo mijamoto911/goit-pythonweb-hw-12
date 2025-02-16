@@ -59,7 +59,21 @@ Contact Service
 
 Healthchecker
 -------------------------
-.. automodule:: src.routes.utils
+.. automodule:: src.api.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Repository: Contacts
+-------------------------
+.. automodule:: src.repository.contacts
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Repository: Users
+-------------------------
+.. automodule:: src.repository.users
    :members:
    :undoc-members:
    :show-inheritance:

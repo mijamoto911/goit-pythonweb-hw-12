@@ -3,17 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Rest API documentation
+Rest API Documentation
 ======================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
-
-
-
-Rest API documentation
-======================
+Welcome to the documentation of the REST API project.
 
 .. toctree::
    :maxdepth: 2
@@ -24,28 +17,6 @@ Rest API documentation
    contacts
    users
 
-REST API main
-===================
-.. automodule:: main
-  :members:
-  :undoc-members:
-  :show-inheritance:
-
-REST API repository Contacts
-============================
-
-.. automodule:: src.repository.contacts
-  :members:
-  :undoc-members:
-  :show-inheritance:
-
-REST API repository Users
-=========================
-.. automodule:: src.repository.users
-  :members:
-  :undoc-members:
-  :show-inheritance:
-
 Indices and tables
 ==================
 
@@ -53,7 +24,3 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-
-
-
-   

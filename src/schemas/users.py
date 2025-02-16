@@ -50,3 +50,27 @@ class RequestEmail(BaseModel):
     """
 
     email: EmailStr = Field(description="Електронна пошта користувача.")
+
+
+from pydantic import BaseModel, EmailStr
+
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    email: EmailStr
+    avatar: str | None = None
+    confirmed: bool
+
+    class Config:
+        from_attributes = True
+
+
+class UserRead(BaseModel):
+    id: int
+    username: str
+    email: EmailStr
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

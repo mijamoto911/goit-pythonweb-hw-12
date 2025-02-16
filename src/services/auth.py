@@ -3,20 +3,13 @@ from typing import Optional
 import os
 from fastapi import Depends, HTTPException, status
 from passlib.context import CryptContext
-from fastapi.security import (
-    OAuth2PasswordBearer,
-    HTTPBearer,
-    HTTPAuthorizationCredentials,
-)
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 
 from src.database.db import get_db
 from src.conf.config import settings
 from src.services.users import UserService
-
-SECRET_KEY = os.getenv("SECRET_KEY", "supersecret")
-ALGORITHM = "HS256"
 
 
 class Hash:
@@ -26,24 +19,15 @@ class Hash:
 
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
-        """
-        Перевіряє, чи збігається введений пароль із хешованим.
+    @classmethod
+    def hash_password(cls, password: str) -> str:
+        """Генерує хеш пароля"""
+        return cls.pwd_context.hash(password)
 
-        :param plain_password: Введений користувачем пароль.
-        :param hashed_password: Захешований пароль із бази даних.
-        :return: True, якщо паролі збігаються, інакше False.
-        """
-        return self.pwd_context.verify(plain_password, hashed_password)
-
-    def get_password_hash(self, password: str) -> str:
-        """
-        Генерує хеш пароля.
-
-        :param password: Пароль користувача.
-        :return: Захешований пароль.
-        """
-        return self.pwd_context.hash(password)
+    @staticmethod
+    def verify_password(plain_password: str, hashed_password: str) -> bool:
+        """Перевіряє, чи збігається введений пароль із хешованим"""
+        return Hash.pwd_context.verify(plain_password, hashed_password)
 
 
 oauth2_scheme = HTTPBearer()
@@ -58,10 +42,9 @@ async def create_access_token(data: dict, expires_delta: Optional[int] = None) -
     :return: Закодований JWT-токен.
     """
     to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(UTC) + timedelta(seconds=expires_delta)
-    else:
-        expire = datetime.now(UTC) + timedelta(seconds=settings.JWT_EXPIRATION_SECONDS)
+    expire = datetime.now(UTC) + timedelta(
+        seconds=expires_delta or settings.JWT_EXPIRATION_SECONDS
+    )
     to_encode.update({"exp": expire})
 
     encoded_jwt = jwt.encode(
@@ -115,8 +98,7 @@ def create_email_token(data: dict) -> str:
     to_encode = data.copy()
     expire = datetime.now(UTC) + timedelta(days=7)
     to_encode.update({"iat": datetime.now(UTC), "exp": expire})
-    token = jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
-    return token
+    return jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
 
 
 async def get_email_from_token(token: str) -> str:
@@ -145,17 +127,29 @@ async def get_email_from_token(token: str) -> str:
         )
 
 
-def create_reset_token(email: str):
-    """Генерує токен для скидання пароля (дійсний 1 годину)"""
-    expiration = datetime.utcnow() + timedelta(hours=1)
+def create_reset_token(email: str) -> str:
+    """
+    Генерує токен для скидання пароля (дійсний 1 годину)
+
+    :param email: Електронна пошта користувача.
+    :return: JWT-токен для скидання пароля.
+    """
+    expiration = datetime.now(UTC) + timedelta(hours=1)
     to_encode = {"sub": email, "exp": expiration}
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
 
 
-def verify_reset_token(token: str):
-    """Перевіряє токен та повертає email"""
+def verify_reset_token(token: str) -> Optional[str]:
+    """
+    Перевіряє токен скидання пароля та повертає email, якщо токен валідний.
+
+    :param token: JWT-токен скидання пароля.
+    :return: Email користувача або None, якщо токен недійсний.
+    """
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(
+            token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
+        )
         return payload.get("sub")
     except JWTError:
         return None

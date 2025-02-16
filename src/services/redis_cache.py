@@ -1,4 +1,5 @@
-import aioredis
+from redis import asyncio as aioredis
+
 import json
 from fastapi import Depends
 from typing import Optional

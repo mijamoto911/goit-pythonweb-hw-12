@@ -91,8 +91,8 @@ class Settings(BaseSettings):
         extra="ignore", env_file=".env", env_file_encoding="utf-8", case_sensitive=True
     )
 
-    class Config:
-        env_file = ".env"
+    # class Config:
+    #     env_file = ".env"
 
     """Конфігурація моделі: ігнорує зайві змінні оточення, завантажує `.env`, враховує регістр."""
 

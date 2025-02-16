@@ -23,12 +23,14 @@ from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.security import OAuth2PasswordRequestForm
 
-from src.schemas.users import UserCreate, Token, User, RequestEmail
+from src.schemas.users import UserCreate, Token, User, RequestEmail, UserResponse
 from src.services.auth import (
     create_access_token,
     Hash,
     get_email_from_token,
     get_current_user,
+    create_reset_token,
+    verify_reset_token,
 )
 from src.services.users import UserService
 from src.services.upload_file import UploadFileService
@@ -36,7 +38,6 @@ from src.database.db import get_db
 from src.services.email import send_email, send_reset_email
 from src.conf.config import settings
 from src.conf import messages
-from src.services.auth import create_reset_token, verify_reset_token, hash_password
 from pydantic import BaseModel, EmailStr
 from src.database.models import User
 
@@ -88,13 +89,15 @@ async def reset_password(
     if not user:
         raise HTTPException(status_code=404, detail="Користувач не знайдений")
 
-    user.hashed_password = hash_password(data.new_password)
+    user.hashed_password = Hash.hash_password(data.new_password)
     await db.commit()
 
     return {"message": "Пароль успішно змінено"}
 
 
-@router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+)
 async def register_user(
     user_data: UserCreate,
     background_tasks: BackgroundTasks,
@@ -180,7 +183,7 @@ async def login_user(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.post("/request_email", response_model=User)
+@router.post("/request_email", response_model=UserResponse)
 async def request_email(
     body: RequestEmail,
     background_tasks: BackgroundTasks,
@@ -210,7 +213,7 @@ async def request_email(
     return {"message": "Перевірте свою електронну пошту для підтвердження"}
 
 
-@router.get("/confirmed_email/{token}", response_model=User)
+@router.get("/confirmed_email/{token}", response_model=UserResponse)
 async def confirmed_email(
     token: str,
     db: Session = Depends(get_db),
@@ -239,7 +242,7 @@ async def confirmed_email(
     return {"message": "Електронну пошту підтверджено"}
 
 
-@router.patch("/avatar", response_model=User)
+@router.patch("/avatar", response_model=UserResponse)
 async def update_avatar_user(
     file: UploadFile = File(),
     user: User = Depends(get_current_user),

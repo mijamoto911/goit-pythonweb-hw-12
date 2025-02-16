@@ -7,12 +7,15 @@ from slowapi.util import get_remote_address
 from starlette.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from src.services.redis_cache import redis_cache
+from src.services.auth import Hash
 
 
 app = FastAPI()
 origins = [
-    "http://localhost:3000",
+    "*",
 ]
+
+hashed_pwd = Hash.hash_password("password123")
 
 
 @app.on_event("startup")

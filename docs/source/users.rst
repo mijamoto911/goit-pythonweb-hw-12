@@ -4,14 +4,14 @@ This module handles all user authentication and profile management.
 
 User Routes
 -------------------------
-.. automodule:: src.routes.users
+.. automodule:: src.api.users
    :members:
    :undoc-members:
    :show-inheritance:
 
 User Authentication
 -------------------------
-.. automodule:: src.routes.auth
+.. automodule:: src.api.auth
    :members:
    :undoc-members:
    :show-inheritance:

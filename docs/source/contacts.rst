@@ -4,7 +4,7 @@ This module handles all operations related to contacts.
 
 Contact Routes
 -------------------------
-.. automodule:: src.routes.contacts
+.. automodule:: src.api.contacts
    :members:
    :undoc-members:
    :show-inheritance:
